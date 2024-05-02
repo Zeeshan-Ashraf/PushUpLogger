@@ -51,7 +51,13 @@ def setUser():
 @app.route("/user", methods=['GET'])
 def getAllUsers():
     try:
-        users: User = UserService().getAllUsers()
+        pageNo: int = int(request.args.get('pageNo')) if request.args.get('pageNo') else None
+        pageSize: int = int(request.args.get('pageSize')) if request.args.get('pageSize') else None
+        users: User
+        if pageNo:
+            users: User = UserService().allUserPaginated(pageNo, pageSize)
+        else:
+            users: User = UserService().getAllUsers()
         return jsonify(users)
     except Exception as E:
         return Response(E.__repr__(), status=HTTPStatus.EXPECTATION_FAILED)
@@ -75,6 +81,18 @@ def searchUser():
         return jsonify(users)
     except ValueError:
         return Response("No Users found", status=HTTPStatus.NOT_FOUND)
+    except Exception as E:
+        return Response(E.__repr__(), status=HTTPStatus.EXPECTATION_FAILED)
+
+
+@app.route("/user/raw-query", methods=['GET'])
+def rawUserQuery():
+    queryString: str = request.get_json()['query']
+    try:
+        results = UserService().rawUserQuery(queryString)
+        return jsonify(results)
+    except ValueError:
+        return Response("No Results found", status=HTTPStatus.NOT_FOUND)
     except Exception as E:
         return Response(E.__repr__(), status=HTTPStatus.EXPECTATION_FAILED)
 

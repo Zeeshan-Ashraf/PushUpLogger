@@ -1,7 +1,8 @@
 import logging
 from dataclasses import dataclass
 
-from sqlalchemy import String, Column, Integer
+from overrides import overrides
+from sqlalchemy import String, Column, Integer, text
 from sqlalchemy.orm import DeclarativeBase, Query
 
 from database import mysqlEngine, mysqlSession
@@ -89,3 +90,32 @@ class UserRepository(IUserRepository):
         except Exception as e:
             logging.exception(e)
             raise e
+
+    @overrides
+    def executeRaw(self, queryString: str):
+        try:
+            with mysqlEngine.connect() as executor:
+                out = executor.execute(text(queryString))
+                results = out.all()  # returns Sequence[Row] i.e list[Row] & Row is not jsonified
+                print(list(results))
+                executor.close()
+                return [tuple(item) for item in results]
+        except Exception as e:
+            logging.exception(e)
+            raise e
+
+    @overrides()
+    # note: offset will take longer if offset is way too long coz offset scan all rows
+    def findAllUserPaginated(self, pageNo: int, pageSize: int = 3):  # page no starts from 1
+        try:
+            usersData: list[UserTable] = (mysqlSession.query(UserTable)
+                                          .offset((pageNo - 1) * pageSize)
+                                          .limit(pageSize)
+                                          .all())  # returns list[UserTable]
+            logging.info(usersData)
+            return [User(item.id, item.name, item.email) for item in usersData]
+        except Exception as e:
+            mysqlSession.rollback()
+            raise e
+
+    # TODO pagination & RawSQLQuery

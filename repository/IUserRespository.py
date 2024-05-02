@@ -23,3 +23,9 @@ class IUserRepository(ABC):
     @abstractmethod
     def findAllUserByGtIdDesc(self, id: int, like: str):
         pass
+
+    def executeRaw(self, queryString: str):
+        pass
+
+    def findAllUserPaginated(self, pageNo: int, pageSize: int):
+        pass
