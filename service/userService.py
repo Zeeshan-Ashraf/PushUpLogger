@@ -46,3 +46,18 @@ class UserService:
             return self.userRepository.findAllUserByGtIdDesc(minId, like)
         except Exception as e:
             raise e
+
+    def rawUserQuery(self, queryString):
+        try:
+            return self.userRepository.executeRaw(queryString)
+        except Exception as e:
+            raise e
+
+    def allUserPaginated(self, pageNo: int, pageSize: int):
+        try:
+            if pageSize:
+                return self.userRepository.findAllUserPaginated(pageNo, pageSize)
+            else:
+                return self.userRepository.findAllUserPaginated(pageNo)
+        except Exception as e:
+            raise e

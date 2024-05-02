@@ -1,3 +1,4 @@
 flask==3.0.3
 SQLAlchemy==2.0.29
-pymysql==1.1.0
+dataclasses==0.6
+overrides==7.7.0
