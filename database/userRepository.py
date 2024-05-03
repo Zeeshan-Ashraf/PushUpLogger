@@ -3,9 +3,10 @@ from dataclasses import dataclass
 
 from overrides import overrides
 from sqlalchemy import String, Column, Integer, text
-from sqlalchemy.orm import DeclarativeBase, Query
+from sqlalchemy.orm import Query, relationship
 
-from database import mysqlEngine, mysqlSession
+from database import mysqlEngine, mysqlSession, Base
+from database.pushUpLogRepository import PushUpLogTable
 from model.user import User
 from repository.IUserRespository import IUserRepository
 
@@ -13,9 +14,8 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
-class Base(DeclarativeBase):
-    pass
-
+# class Base(DeclarativeBase):
+#     pass
 
 @dataclass
 class UserTable(Base):
@@ -23,9 +23,15 @@ class UserTable(Base):
     id: Column = Column(Integer, primary_key=True, autoincrement=True)
     name: Column = Column(String(255), unique=True, nullable=False)
     email: Column = Column(String(255), name='email_id', unique=True, nullable=False)
+    pushUpLogs = relationship(PushUpLogTable)
 
 
-Base.metadata.create_all(mysqlEngine)
+# Note: the command Base.metadata.create_all(mysqlEngine) must be called after the class Table(Base) & only
+# imported Table(Base) classes in the file where Base.metadata.create_all(mysqlEngine) is called will be created
+# in MySql. usually if models are in different files then Base.metadata.create_all(mysqlEngine) could cause cyclic
+# import due to cycle of import so the best way is having a initDb file where import all Table class & run
+
+# Base.metadata.create_all(mysqlEngine)  #need to uncomment if database.initDb.createDb() is commented
 
 
 class UserRepository(IUserRepository):
@@ -117,5 +123,3 @@ class UserRepository(IUserRepository):
         except Exception as e:
             mysqlSession.rollback()
             raise e
-
-    # TODO pagination & RawSQLQuery
