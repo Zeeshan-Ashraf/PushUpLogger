@@ -103,7 +103,7 @@ def rawUserQuery():
 def getAllPushUp():
     try:
         data = PushUpLogService().getAll()
-        return Response(response=json.dumps(data.__dict__), status=200, mimetype='application/json')
+        return jsonify(data)
         # we can also use: return jsonify(data)  p.s: jsonify returns Response object & directly converts obj to json
     except ValueError:
         return Response(response="User not found", status=HTTPStatus.NOT_FOUND)

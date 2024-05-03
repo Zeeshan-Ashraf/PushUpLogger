@@ -6,16 +6,25 @@ from sqlalchemy import String, Column, Integer, text
 from sqlalchemy.orm import Query, relationship
 
 from database import mysqlEngine, mysqlSession, Base
-from database.pushUpLogRepository import PushUpLogTable
 from model.user import User
 from repository.IUserRespository import IUserRepository
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-
+# uncomment below class Base if not using database.__init__.Base , either of them can be used but might cause issue
+# while creating table (why? read NOTE in docstring)
 # class Base(DeclarativeBase):
 #     pass
+'''
+==============================================
+NOTE: must use single Base for all the tables so that Base.metadata.create_all(mysqlEngine) can create tables with
+dependency otherwise in case of P.K-F.K relationship you might get error that P.K user.id doesn't
+exists (if Base.metadata.create_all(mysqlEngine)) not able to create primary_key table (user) before creating F.K
+table (pushup_log)
+==============================================
+'''
+
 
 @dataclass
 class UserTable(Base):
@@ -23,22 +32,30 @@ class UserTable(Base):
     id: Column = Column(Integer, primary_key=True, autoincrement=True)
     name: Column = Column(String(255), unique=True, nullable=False)
     email: Column = Column(String(255), name='email_id', unique=True, nullable=False)
-    pushUpLogs = relationship(PushUpLogTable)
+    pushUpLogs = relationship('PushUpLogTable')  # this relationship col will not be created in DB TABLE
+
+    # ^^^ can also use relationship(PushUpLogTable) but we used 'PushUpLogTable' to avoid cycle import
+
+    def __repr__(self):
+        return 'id={},name={},email={},pushUpLogs={}'.format(self.id, self.name, self.email, self.pushUpLogs)
 
 
-# Note: the command Base.metadata.create_all(mysqlEngine) must be called after the class Table(Base) & only
-# imported Table(Base) classes in the file where Base.metadata.create_all(mysqlEngine) is called will be created
-# in MySql. usually if models are in different files then Base.metadata.create_all(mysqlEngine) could cause cyclic
-# import due to cycle of import so the best way is having a initDb file where import all Table class & run
+'''
+Note: the command Base.metadata.create_all(mysqlEngine) must be called after the class Table(Base) & only
+imported Table(Base) classes in the file where Base.metadata.create_all(mysqlEngine) is called will be created
+in MySql. usually if models are in different files then Base.metadata.create_all(mysqlEngine) could cause cyclic
+import due to cycle of import so the best way is having a initDb file where import all Table class & run
+'''
 
-# Base.metadata.create_all(mysqlEngine)  #need to uncomment if database.initDb.createDb() is commented
 
+# Base.metadata.create_all(mysqlEngine)  #need to uncomment iff database.initDb.createDb() is commented
 
 class UserRepository(IUserRepository):
     def findUserById(self, id: int) -> User:
         try:
             result: Query = mysqlSession.query(UserTable).filter(
                 UserTable.id == id)  # returns Query (not the UserTable)
+            # another short way: mysqlSession.get(UserTable, id) P.S: works on P.K & returns UserTable
             userData: UserTable = result.first()  # returns UserTable
             logging.info(userData)
             if userData is None:
