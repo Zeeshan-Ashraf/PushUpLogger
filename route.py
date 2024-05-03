@@ -4,8 +4,10 @@ from http import HTTPStatus
 
 from flask import Flask, Response, jsonify, request
 
+from database import initDb
 from model.user import User
 from service.health import Health
+from service.pushUpLogService import PushUpLogService
 from service.userService import UserService
 
 app = Flask(__name__)
@@ -97,5 +99,29 @@ def rawUserQuery():
         return Response(E.__repr__(), status=HTTPStatus.EXPECTATION_FAILED)
 
 
+@app.route("/pushup", methods=['GET'])
+def getAllPushUp():
+    try:
+        data = PushUpLogService().getAll()
+        return Response(response=json.dumps(data.__dict__), status=200, mimetype='application/json')
+        # we can also use: return jsonify(data)  p.s: jsonify returns Response object & directly converts obj to json
+    except ValueError:
+        return Response(response="User not found", status=HTTPStatus.NOT_FOUND)
+    except Exception as e:
+        return Response(e.__repr__(), status=HTTPStatus.EXPECTATION_FAILED)
+
+
+@app.route("/user/<int:id>/pushup", methods=['POST'])
+def setUserPushUp(id: int):
+    try:
+        count, comment = int(request.get_json()['pushUpCount']), request.get_json()['comment']
+        logger.info("request recieved at /user/<int:id>/pushup count=" + str(count) + " comment=" + comment)
+        PushUpLogService().save(id, count, comment)
+        return Response("Insert Ok", status=HTTPStatus.OK)
+    except Exception as E:
+        return Response(E.__repr__(), status=HTTPStatus.EXPECTATION_FAILED)
+
+
 if __name__ == "__main__":
+    initDb.createDb()
     app.run(debug=True)
