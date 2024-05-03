@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 from database.userRepository import UserRepository
 from model.user import User
+from repository.IUserRespository import IUserRepository
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -10,7 +11,7 @@ logger.setLevel(logging.INFO)
 
 @dataclass
 class UserService:
-    userRepository: UserRepository = UserRepository()
+    userRepository: IUserRepository = UserRepository()
 
     def getUser(self, id: int) -> User:
         try:

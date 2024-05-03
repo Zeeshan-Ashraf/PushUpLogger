@@ -5,16 +5,17 @@ from database.pushUpLogRepository import PushUpLogRepository
 from database.userRepository import UserRepository
 from model.pushUpLog import PushUpLog
 from model.user import User
+from repository.IPushUpLogRepository import IPushUpLogRepository
 
 
 @dataclass
 class PushUpLogService:
-    pushUpLogRepository: PushUpLogRepository = PushUpLogRepository()
+    pushUpLogRepository: IPushUpLogRepository = PushUpLogRepository()
     userRepository: UserRepository = UserRepository()
 
     def getAll(self):
         try:
-            self.pushUpLogRepository.getAll()
+            return self.pushUpLogRepository.getAll()
         except Exception as e:
             raise e
 

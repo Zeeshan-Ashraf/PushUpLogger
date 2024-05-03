@@ -9,7 +9,7 @@ sqliteEngine = create_engine(SQLITE_DB_CONNECT_URI)
 SqliteSession = sessionmaker(bind=sqliteEngine)
 sqliteSession = SqliteSession()
 
-mysqlEngine = create_engine(MYSQL_DB_CONNECT_URI, echo=True)
+mysqlEngine = create_engine(MYSQL_DB_CONNECT_URI, echo=True)  # echo will echo the query fired to DB
 MysqlSession = sessionmaker(bind=mysqlEngine)
 mysqlSession = MysqlSession()
 
