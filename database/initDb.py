@@ -8,7 +8,7 @@ from database.userRepository import UserTable
 # Ans: coz to avoid cyclic import  database.__init__ imports->UserTable and UserTable imports->database.__init__
 # and also we can call this createDb from route.py.main()
 def createDb():
-    Base.metadata.create_all(mysqlEngine)
+    Base.metadata.create_all(mysqlEngine)  # order of table class (or import) doesn't matter
 
 
 # Note: the command Base.metadata.create_all(mysqlEngine) must be called after the class Table(Base) & only
